@@ -776,10 +776,11 @@
     // HELPER FUNCTIONS
     // =========================================================================
     function formatStars(num) {
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+      const count = Number(num) || 0;
+      if (count >= 1000) {
+        return (count / 1000).toFixed(1).replace(/\.0$/, "") + "k";
       }
-      return num.toString();
+      return count.toString();
     }
 
     function showSnackbar(message) {
@@ -876,9 +877,9 @@
 
       // Sort
       filtered.sort((a, b) => {
-        if (state.sortBy === "stars") return b.stars - a.stars;
-        if (state.sortBy === "updated") return new Date(b.updatedAt) - new Date(a.updatedAt);
-        if (state.sortBy === "name") return a.name.localeCompare(b.name);
+        if (state.sortBy === "stars") return (Number(b.stars) || 0) - (Number(a.stars) || 0);
+        if (state.sortBy === "updated") return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+        if (state.sortBy === "name") return (a.name || "").localeCompare(b.name || "");
         return 0;
       });
 
@@ -894,10 +895,19 @@
         emptyState.classList.add("hidden");
       }
 
-      // Build cards
-      extensionsGrid.innerHTML = filtered.map(ext => `
+      // Build cards (with safe defaults for optional registry.json fields)
+      extensionsGrid.innerHTML = filtered.map((ext, idx) => {
+        const extId = ext.id || `ext-${idx}`;
+        const extName = ext.name || "Untitled Extension";
+        const extAuthor = ext.author || "unknown";
+        const extTagline = ext.tagline || ext.description || "Open-source browser extension.";
+        const extLicense = ext.license || "FOSS";
+        const extIcon = ext.icon || "extension";
+        const extColor = ext.accentColor || "#0b57d0";
+
+        return `
         <article
-          data-id="${ext.id}"
+          data-id="${extId}"
           class="group cursor-pointer rounded-[24px] bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerLow hover:bg-m3-surfaceContainer dark:hover:bg-m3-darkSurfaceContainer border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
         >
           <div>
@@ -905,16 +915,16 @@
             <div class="flex items-start gap-3.5">
               <div
                 class="w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform"
-                style="background-color: ${ext.accentColor}"
+                style="background-color: ${extColor}"
               >
-                <span class="material-symbols-rounded text-[28px]">${ext.icon}</span>
+                <span class="material-symbols-rounded text-[28px]">${extIcon}</span>
               </div>
               <div class="min-w-0 flex-1">
                 <h3 class="font-display font-semibold text-base text-m3-onSurface dark:text-m3-darkOnSurface truncate group-hover:text-m3-primary dark:group-hover:text-m3-darkPrimary transition-colors">
-                  ${ext.name}
+                  ${extName}
                 </h3>
                 <p class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant truncate mt-0.5">
-                  @${ext.author}
+                  @${extAuthor}
                 </p>
                 <!-- Rating / Stars & License -->
                 <div class="flex items-center gap-2 mt-1.5 text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
@@ -924,7 +934,7 @@
                   </span>
                   <span>•</span>
                   <span class="px-1.5 py-0.5 rounded-md bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh font-mono text-[11px]">
-                    ${ext.license}
+                    ${extLicense}
                   </span>
                 </div>
               </div>
@@ -932,7 +942,7 @@
 
             <!-- Short Description -->
             <p class="mt-4 text-xs sm:text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant line-clamp-2 leading-relaxed">
-              ${ext.tagline}
+              ${extTagline}
             </p>
           </div>
 
@@ -946,12 +956,12 @@
             </span>
           </div>
         </article>
-      `).join("");
+      `}).join("");
 
       // Attach click handlers to cards
       extensionsGrid.querySelectorAll("article").forEach(card => {
         card.addEventListener("click", () => {
-          const ext = state.extensions.find(e => e.id === card.dataset.id);
+          const ext = state.extensions.find((e, idx) => (e.id || `ext-${idx}`) === card.dataset.id);
           if (ext) openDetailModal(ext);
         });
       });
@@ -962,20 +972,20 @@
     // =========================================================================
     function openDetailModal(ext) {
       const modalIcon = document.getElementById("modalIcon");
-      modalIcon.style.backgroundColor = ext.accentColor;
-      modalIcon.innerHTML = `<span class="material-symbols-rounded text-[34px]">${ext.icon}</span>`;
+      modalIcon.style.backgroundColor = ext.accentColor || "#0b57d0";
+      modalIcon.innerHTML = `<span class="material-symbols-rounded text-[34px]">${ext.icon || "extension"}</span>`;
 
-      document.getElementById("modalTitle").textContent = ext.name;
-      document.getElementById("modalAuthor").textContent = `@${ext.author}`;
-      document.getElementById("modalVersion").textContent = `v${ext.version}`;
-      document.getElementById("modalLongDesc").textContent = ext.description;
+      document.getElementById("modalTitle").textContent = ext.name || "Untitled Extension";
+      document.getElementById("modalAuthor").textContent = `@${ext.author || "unknown"}`;
+      document.getElementById("modalVersion").textContent = `v${ext.version || "1.0.0"}`;
+      document.getElementById("modalLongDesc").textContent = ext.description || ext.tagline || "No detailed description provided.";
       document.getElementById("modalStars").innerHTML = `
         <span class="material-symbols-rounded text-[18px] icon-filled text-amber-500">star</span>
-        <span>${ext.stars.toLocaleString()}</span>
+        <span>${(Number(ext.stars) || 0).toLocaleString()}</span>
       `;
-      document.getElementById("modalLicense").textContent = ext.license;
-      document.getElementById("modalManifest").textContent = `MV${ext.manifestVersion}`;
-      document.getElementById("modalUpdated").textContent = ext.updatedAt;
+      document.getElementById("modalLicense").textContent = ext.license || "FOSS";
+      document.getElementById("modalManifest").textContent = `MV${ext.manifestVersion || 3}`;
+      document.getElementById("modalUpdated").textContent = ext.updatedAt || "N/A";
 
       const verifiedBadge = document.getElementById("modalVerifiedBadge");
       if (ext.verifiedBuild) {
@@ -984,12 +994,16 @@
         verifiedBadge.classList.add("hidden");
       }
 
-      document.getElementById("modalDownloadLink").href = ext.releaseUrl;
-      document.getElementById("modalRepoLink").href = ext.repoUrl;
+      document.getElementById("modalDownloadLink").href = ext.releaseUrl || ext.repoUrl || "#";
+      document.getElementById("modalRepoLink").href = ext.repoUrl || "#";
 
-      // Render permissions chips
+      // Render permissions chips safely
       const permContainer = document.getElementById("modalPermissions");
-      permContainer.innerHTML = ext.permissions.map(p => `
+      const permissions = Array.isArray(ext.permissions) && ext.permissions.length > 0
+        ? ext.permissions
+        : ["No special permissions declared"];
+
+      permContainer.innerHTML = permissions.map(p => `
         <span class="px-2.5 py-1 rounded-lg bg-m3-surface dark:bg-m3-darkSurface border border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40 font-mono text-xs text-m3-onSurface dark:text-m3-darkOnSurface">
           ${p}
         </span>
