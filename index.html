@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenStore — Open-Source Browser Extensions</title>
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans + Material Symbols Rounded -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            // Material 3 Tonal Palette (Google Blue / Cobalt inspired)
+            m3: {
+              surface: '#f8fafd',
+              surfaceContainerLow: '#f0f4f9',
+              surfaceContainer: '#e9eef6',
+              surfaceContainerHigh: '#e1e7f0',
+              surfaceContainerHighest: '#d9e0ea',
+              primary: '#0b57d0',
+              onPrimary: '#ffffff',
+              primaryContainer: '#d3e3fd',
+              onPrimaryContainer: '#041e49',
+              secondaryContainer: '#c2e7ff',
+              onSecondaryContainer: '#001d35',
+              outline: '#747775',
+              outlineVariant: '#c4c7c5',
+              onSurface: '#1f1f1f',
+              onSurfaceVariant: '#444746',
+              // Dark Mode M3 Tokens
+              darkSurface: '#111318',
+              darkSurfaceContainerLow: '#191c20',
+              darkSurfaceContainer: '#1d2024',
+              darkSurfaceContainerHigh: '#282a2f',
+              darkSurfaceContainerHighest: '#33353a',
+              darkPrimary: '#a8c7fa',
+              darkOnPrimary: '#062e6f',
+              darkPrimaryContainer: '#0842a0',
+              darkOnPrimaryContainer: '#d3e3fd',
+              darkSecondaryContainer: '#004a77',
+              darkOnSecondaryContainer: '#c2e7ff',
+              darkOutline: '#8e918f',
+              darkOutlineVariant: '#444746',
+              darkOnSurface: '#e3e2e6',
+              darkOnSurfaceVariant: '#c4c6d0',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    .material-symbols-rounded {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+      user-select: none;
+    }
+    .icon-filled {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(116, 119, 117, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(116, 119, 117, 0.55);
+    }
+  </style>
+</head>
+<body class="bg-m3-surface dark:bg-m3-darkSurface text-m3-onSurface dark:text-m3-darkOnSurface transition-colors duration-200 min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- TOP APP BAR (Material 3 Search & Navigation Header)                   -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-30 bg-m3-surface/90 dark:bg-m3-darkSurface/90 backdrop-blur-md border-b border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3">
+      
+      <!-- Brand Logo -->
+      <a href="#" id="brandReset" class="flex items-center gap-3 shrink-0 group focus:outline-none">
+        <div class="w-10 h-10 rounded-2xl bg-m3-primary dark:bg-m3-darkPrimary text-m3-onPrimary dark:text-m3-darkOnPrimary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+          <span class="material-symbols-rounded icon-filled text-[24px]">extension</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-display font-bold text-xl tracking-tight">OpenStore</span>
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-m3-primaryContainer dark:bg-m3-darkPrimaryContainer text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer">
+              FOSS
+            </span>
+          </div>
+          <span class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant hidden sm:block">
+            GitHub-hosted extension directory
+          </span>
+        </div>
+      </a>
+
+      <!-- M3 Pill Search Bar -->
+      <div class="flex-1 max-w-2xl mx-2">
+        <div class="relative flex items-center w-full h-12 rounded-full bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh px-4 focus-within:ring-2 focus-within:ring-m3-primary dark:focus-within:ring-m3-darkPrimary transition-all">
+          <span class="material-symbols-rounded text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant mr-3">search</span>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search open-source extensions, authors, or licenses..."
+            class="w-full bg-transparent text-sm sm:text-base text-m3-onSurface dark:text-m3-darkOnSurface placeholder-m3-onSurfaceVariant dark:placeholder-m3-darkOnSurfaceVariant focus:outline-none"
+          />
+          <button
+            id="clearSearchBtn"
+            class="hidden p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant"
+            aria-label="Clear search"
+          >
+            <span class="material-symbols-rounded text-[20px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- View Registry JSON Button -->
+        <button
+          id="openRegistryBtn"
+          class="hidden md:flex items-center gap-2 h-10 px-4 rounded-full text-sm font-medium text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant hover:bg-m3-surfaceContainerHigh dark:hover:bg-m3-darkSurfaceContainerHigh transition-colors"
+          title="Inspect registry.json"
+        >
+          <span class="material-symbols-rounded text-[20px]">data_object</span>
+          <span>registry.json</span>
+        </button>
+
+        <!-- Submit Extension CTA -->
+        <button
+          id="openSubmitBtn"
+          class="flex items-center gap-2 h-10 px-4 sm:px-5 rounded-full text-sm font-medium bg-m3-primaryContainer dark:bg-m3-darkPrimaryContainer text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer hover:brightness-95 dark:hover:brightness-110 transition-all"
+        >
+          <span class="material-symbols-rounded text-[20px]">add_circle</span>
+          <span class="hidden sm:inline">Submit Repo</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button
+          id="themeToggleBtn"
+          class="w-10 h-10 rounded-full flex items-center justify-center text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant hover:bg-m3-surfaceContainerHigh dark:hover:bg-m3-darkSurfaceContainerHigh transition-colors"
+          aria-label="Toggle dark mode"
+        >
+          <span id="themeIcon" class="material-symbols-rounded">dark_mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT AREA                                                     -->
+  <!-- ===================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+
+    <!-- Featured Banner Card (Material 3 Hero Surface) -->
+    <section id="heroBanner" class="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-m3-primaryContainer via-[#e3eeff] to-m3-secondaryContainer dark:from-[#0b295c] dark:via-[#112447] dark:to-[#073657] p-6 sm:p-10 border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30">
+      <div class="relative z-10 max-w-2xl space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/75 dark:bg-black/30 backdrop-blur-sm text-xs font-medium text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer">
+          <span class="material-symbols-rounded text-[16px] icon-filled text-m3-primary dark:text-m3-darkPrimary">verified</span>
+          100% Auditable Source Code • Powered by GitHub Releases
+        </div>
+        <h1 class="font-display font-bold text-2xl sm:text-4xl text-m3-onPrimaryContainer dark:text-white leading-tight">
+          Extensions without black boxes or trackers.
+        </h1>
+        <p class="text-sm sm:text-base text-m3-onPrimaryContainer/85 dark:text-m3-darkOnPrimaryContainer/90 leading-relaxed">
+          Every extension on OpenStore is built directly from public GitHub repositories. Inspect permissions, review manifests, and install straight from verified GitHub releases.
+        </p>
+        <div class="pt-2 flex flex-wrap items-center gap-3">
+          <button
+            id="howToInstallHeroBtn"
+            class="h-11 px-6 rounded-full bg-m3-primary dark:bg-m3-darkPrimary text-m3-onPrimary dark:text-m3-darkOnPrimary font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow transition-all"
+          >
+            <span class="material-symbols-rounded text-[20px]">download</span>
+            How Sideloading Works
+          </button>
+          <button
+            id="viewRegistryHeroBtn"
+            class="h-11 px-5 rounded-full bg-white/70 dark:bg-white/10 text-m3-onPrimaryContainer dark:text-white font-medium text-sm flex items-center gap-2 hover:bg-white/90 dark:hover:bg-white/15 transition-all"
+          >
+            <span class="material-symbols-rounded text-[20px]">code</span>
+            Explore registry.json
+          </button>
+        </div>
+      </div>
+
+      <!-- Decorative Material 3 Abstract Shapes -->
+      <div class="hidden lg:flex absolute right-10 top-1/2 -translate-y-1/2 items-center gap-4 opacity-90 pointer-events-none">
+        <div class="w-28 h-28 rounded-[28px] bg-m3-primary/15 dark:bg-m3-darkPrimary/20 backdrop-blur-md flex items-center justify-center rotate-6">
+          <span class="material-symbols-rounded text-[52px] text-m3-primary dark:text-m3-darkPrimary">shield_lock</span>
+        </div>
+        <div class="space-y-4 -translate-y-3">
+          <div class="w-24 h-24 rounded-full bg-white/60 dark:bg-white/10 flex items-center justify-center">
+            <span class="material-symbols-rounded text-[40px] text-m3-primary dark:text-m3-darkPrimary">terminal</span>
+          </div>
+          <div class="w-24 h-24 rounded-[24px] bg-m3-primary text-white flex items-center justify-center -rotate-6 shadow-md">
+            <span class="material-symbols-rounded text-[40px]">deployed_code</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Filter Chips & Sort Controls -->
+    <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <!-- Material 3 Filter Chips -->
+      <div id="categoryChips" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- Sort & Count -->
+      <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+        <span id="resultsCount" class="text-xs font-medium text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+          Showing 8 extensions
+        </span>
+        <div class="relative">
+          <select
+            id="sortSelect"
+            class="appearance-none h-9 pl-3.5 pr-9 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerLow border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-xs font-medium text-m3-onSurface dark:text-m3-darkOnSurface focus:outline-none focus:ring-2 focus:ring-m3-primary cursor-pointer"
+          >
+            <option value="stars">Most Stars</option>
+            <option value="updated">Recently Updated</option>
+            <option value="name">Alphabetical (A–Z)</option>
+          </select>
+          <span class="material-symbols-rounded text-[18px] text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+            expand_more
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Extensions Grid -->
+    <section>
+      <div id="extensionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        <!-- Extension cards rendered here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden py-16 text-center space-y-3">
+        <div class="w-16 h-16 mx-auto rounded-full bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh flex items-center justify-center text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+          <span class="material-symbols-rounded text-[32px]">search_off</span>
+        </div>
+        <h3 class="font-display font-semibold text-lg">No extensions found</h3>
+        <p class="text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant max-w-md mx-auto">
+          Try adjusting your search query or switching category filters. Want to add one? Submit a PR to <code class="text-xs px-1.5 py-0.5 rounded bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh">registry.json</code>!
+        </p>
+        <button
+          id="resetFiltersBtn"
+          class="mt-2 h-10 px-5 rounded-full bg-m3-primary dark:bg-m3-darkPrimary text-m3-onPrimary dark:text-m3-darkOnPrimary text-sm font-medium"
+        >
+          Reset Filters
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER                                                                -->
+  <!-- ===================================================================== -->
+  <footer class="mt-12 border-t border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40 bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerLow">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-rounded text-[18px] text-m3-primary dark:text-m3-darkPrimary">extension</span>
+        <span class="font-semibold text-m3-onSurface dark:text-m3-darkOnSurface">OpenStore</span>
+        <span>— Static GitHub Pages Architecture powered by <code class="font-mono">registry.json</code></span>
+      </div>
+      <div class="flex items-center gap-5">
+        <button id="footerInstallBtn" class="hover:text-m3-primary dark:hover:text-m3-darkPrimary transition-colors">Install Guide</button>
+        <button id="footerRegistryBtn" class="hover:text-m3-primary dark:hover:text-m3-darkPrimary transition-colors">Schema &amp; JSON</button>
+        <button id="footerSubmitBtn" class="hover:text-m3-primary dark:hover:text-m3-darkPrimary transition-colors">Submit Extension</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 1: EXTENSION DETAIL & INSTALL SHEET (Material 3 Dialog)         -->
+  <!-- ===================================================================== -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs">
+    <div class="bg-m3-surface dark:bg-m3-darkSurfaceContainer border border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40 rounded-[28px] max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Top Header -->
+      <div class="px-6 py-5 border-b border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 flex items-start justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div id="modalIcon" class="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0">
+            <!-- Icon injected via JS -->
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 id="modalTitle" class="font-display font-bold text-xl sm:text-2xl">Extension Name</h2>
+              <span id="modalVerifiedBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-m3-secondaryContainer dark:bg-m3-darkSecondaryContainer text-m3-onSecondaryContainer dark:text-m3-darkOnSecondaryContainer">
+                <span class="material-symbols-rounded text-[14px] icon-filled">verified</span>
+                Action Built
+              </span>
+            </div>
+            <p class="text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant mt-0.5">
+              by <span id="modalAuthor" class="font-medium text-m3-primary dark:text-m3-darkPrimary">author</span> • <span id="modalVersion">v1.0.0</span>
+            </p>
+          </div>
+        </div>
+        <button id="closeDetailModalBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-m3-surfaceContainerHigh dark:hover:bg-m3-darkSurfaceContainerHigh text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant shrink-0">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Scrollable Body -->
+      <div class="p-6 overflow-y-auto space-y-6">
+        
+        <!-- Primary Action Bar -->
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            id="modalDownloadLink"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex-1 sm:flex-none h-11 px-6 rounded-full bg-m3-primary dark:bg-m3-darkPrimary text-m3-onPrimary dark:text-m3-darkOnPrimary font-medium text-sm flex items-center justify-center gap-2 shadow-sm hover:brightness-105 transition-all"
+          >
+            <span class="material-symbols-rounded text-[20px]">download</span>
+            Download Release (.zip)
+          </a>
+          <a
+            id="modalRepoLink"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex-1 sm:flex-none h-11 px-5 rounded-full border border-m3-outline dark:border-m3-darkOutline text-m3-primary dark:text-m3-darkPrimary font-medium text-sm flex items-center justify-center gap-2 hover:bg-m3-primary/5 dark:hover:bg-m3-darkPrimary/10 transition-colors"
+          >
+            <span class="material-symbols-rounded text-[20px]">code</span>
+            View GitHub Repo
+          </a>
+        </div>
+
+        <!-- Metadata Pills -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh">
+            <div class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">GitHub Stars</div>
+            <div id="modalStars" class="font-display font-bold text-base mt-0.5 flex items-center gap-1">
+              <span class="material-symbols-rounded text-[18px] icon-filled text-amber-500">star</span>
+              <span>0</span>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh">
+            <div class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">License</div>
+            <div id="modalLicense" class="font-display font-bold text-base mt-0.5">MIT</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh">
+            <div class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">Manifest</div>
+            <div id="modalManifest" class="font-display font-bold text-base mt-0.5">MV3</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh">
+            <div class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">Updated</div>
+            <div id="modalUpdated" class="font-display font-bold text-base mt-0.5">2 days ago</div>
+          </div>
+        </div>
+
+        <!-- Overview -->
+        <div class="space-y-2">
+          <h3 class="font-display font-semibold text-base">Overview</h3>
+          <p id="modalLongDesc" class="text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant leading-relaxed">
+            Detailed description goes here.
+          </p>
+        </div>
+
+        <!-- Requested Permissions (Transparency Card) -->
+        <div class="p-4 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh space-y-3 border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30">
+          <div class="flex items-center justify-between">
+            <h3 class="font-display font-semibold text-sm flex items-center gap-2">
+              <span class="material-symbols-rounded text-[18px] text-m3-primary dark:text-m3-darkPrimary">policy</span>
+              Declared Manifest Permissions
+            </h3>
+            <span class="text-[11px] text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">Parsed from manifest.json</span>
+          </div>
+          <div id="modalPermissions" class="flex flex-wrap gap-2">
+            <!-- Permission chips injected via JS -->
+          </div>
+        </div>
+
+        <!-- Quick Sideload Instructions -->
+        <div class="p-4 rounded-2xl bg-m3-primaryContainer/40 dark:bg-m3-darkPrimaryContainer/30 space-y-2.5">
+          <h3 class="font-display font-semibold text-sm text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer flex items-center gap-2">
+            <span class="material-symbols-rounded text-[18px]">install_desktop</span>
+            How to Install in Chrome / Brave / Edge
+          </h3>
+          <ol class="text-xs sm:text-sm text-m3-onPrimaryContainer/90 dark:text-m3-darkOnPrimaryContainer/90 space-y-1.5 list-decimal list-inside">
+            <li>Download and unzip the release archive from GitHub above.</li>
+            <li>
+              Open <code class="px-1.5 py-0.5 rounded bg-white/70 dark:bg-black/30 font-mono text-xs select-all">chrome://extensions</code> in a new tab.
+              <button id="copyExtUrlBtn" class="ml-1 inline-flex items-center gap-1 text-xs font-semibold underline hover:opacity-80">
+                Copy URL
+              </button>
+            </li>
+            <li>Enable <strong>Developer mode</strong> in the top-right corner.</li>
+            <li>Click <strong>Load unpacked</strong> and select the extracted folder.</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL 2: REGISTRY.JSON INSPECTOR & PR SUBMISSION GENERATOR            -->
+  <!-- ===================================================================== -->
+  <div id="registryModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs">
+    <div class="bg-m3-surface dark:bg-m3-darkSurfaceContainer border border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40 rounded-[28px] max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <div class="px-6 py-4 border-b border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-rounded text-m3-primary dark:text-m3-darkPrimary">data_object</span>
+          <h2 id="registryModalTitle" class="font-display font-bold text-lg">OpenStore Registry Architecture</h2>
+        </div>
+        <button id="closeRegistryModalBtn" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-m3-surfaceContainerHigh dark:hover:bg-m3-darkSurfaceContainerHigh">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <!-- Tabs inside Registry Modal -->
+      <div class="px-6 pt-3 border-b border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 flex gap-4">
+        <button id="tabViewJson" class="pb-3 text-sm font-semibold border-b-2 border-m3-primary dark:border-m3-darkPrimary text-m3-primary dark:text-m3-darkPrimary">
+          Live registry.json
+        </button>
+        <button id="tabSubmitEntry" class="pb-3 text-sm font-medium border-b-2 border-transparent text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant hover:text-m3-onSurface">
+          Generate PR Entry
+        </button>
+        <button id="tabInstallGuide" class="pb-3 text-sm font-medium border-b-2 border-transparent text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant hover:text-m3-onSurface">
+          Sideloading Guide
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1">
+        <!-- Tab 1: View JSON -->
+        <div id="panelViewJson" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+              This static JSON file powers the entire store on GitHub Pages. No backend database required.
+            </p>
+            <button id="copyFullJsonBtn" class="h-8 px-3.5 rounded-full bg-m3-secondaryContainer dark:bg-m3-darkSecondaryContainer text-m3-onSecondaryContainer dark:text-m3-darkOnSecondaryContainer text-xs font-medium flex items-center gap-1.5">
+              <span class="material-symbols-rounded text-[16px]">content_copy</span>
+              Copy JSON
+            </button>
+          </div>
+          <pre id="rawRegistryPre" class="p-4 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurface text-xs font-mono overflow-x-auto max-h-96 border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 leading-relaxed"></pre>
+        </div>
+
+        <!-- Tab 2: Generate PR Entry -->
+        <div id="panelSubmitEntry" class="hidden space-y-4">
+          <p class="text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+            Fill out your GitHub extension details below to generate a valid <code class="font-mono text-xs px-1 py-0.5 rounded bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh">registry.json</code> snippet ready for a Pull Request.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input id="genName" type="text" placeholder="Extension Name (e.g. TabTidy)" class="h-11 px-4 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary" />
+            <input id="genAuthor" type="text" placeholder="GitHub Username (e.g. octocat)" class="h-11 px-4 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary" />
+            <input id="genRepo" type="text" placeholder="GitHub Repo URL" class="h-11 px-4 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary" />
+            <select id="genCategory" class="h-11 px-4 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary">
+              <option value="Productivity">Productivity</option>
+              <option value="Developer Tools">Developer Tools</option>
+              <option value="Privacy & Security">Privacy &amp; Security</option>
+              <option value="Appearance">Appearance</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <input id="genDesc" type="text" placeholder="Short one-line summary..." class="w-full h-11 px-4 rounded-xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh border border-m3-outlineVariant dark:border-m3-darkOutlineVariant text-sm focus:outline-none focus:ring-2 focus:ring-m3-primary" />
+
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">Generated JSON Snippet</span>
+              <button id="copyGeneratedSnippetBtn" class="h-8 px-3.5 rounded-full bg-m3-primary dark:bg-m3-darkPrimary text-m3-onPrimary dark:text-m3-darkOnPrimary text-xs font-medium flex items-center gap-1.5">
+                <span class="material-symbols-rounded text-[16px]">content_copy</span>
+                Copy Snippet
+              </button>
+            </div>
+            <pre id="generatedSnippetPre" class="p-4 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurface text-xs font-mono overflow-x-auto border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30"></pre>
+          </div>
+        </div>
+
+        <!-- Tab 3: Sideloading Guide -->
+        <div id="panelInstallGuide" class="hidden space-y-4 text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant leading-relaxed">
+          <div class="p-4 rounded-2xl bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerHigh space-y-2">
+            <h3 class="font-display font-semibold text-m3-onSurface dark:text-m3-darkOnSurface">Why manual installation?</h3>
+            <p>
+              Because OpenStore is hosted directly on GitHub without a centralized proprietary gatekeeper, extensions are distributed as open-source release archives (<code class="font-mono text-xs">.zip</code> or <code class="font-mono text-xs">.crx</code>).
+            </p>
+          </div>
+          <ol class="space-y-3 list-decimal list-inside text-m3-onSurface dark:text-m3-darkOnSurface">
+            <li><strong>Download the Release:</strong> Click <em>Download Release (.zip)</em> on any OpenStore card to grab the compiled build from GitHub Releases.</li>
+            <li><strong>Extract the Folder:</strong> Unzip the downloaded archive into a permanent folder on your computer.</li>
+            <li><strong>Open Extensions Manager:</strong> Navigate to <code class="px-1.5 py-0.5 rounded bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh font-mono text-xs">chrome://extensions</code> (or <code class="px-1.5 py-0.5 rounded bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh font-mono text-xs">brave://extensions</code> / <code class="px-1.5 py-0.5 rounded bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh font-mono text-xs">edge://extensions</code>).</li>
+            <li><strong>Toggle Developer Mode:</strong> Flip the <em>Developer mode</em> switch in the top-right corner of the browser page.</li>
+            <li><strong>Load Unpacked:</strong> Click <em>Load unpacked</em> and select the folder containing <code class="font-mono text-xs">manifest.json</code>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MATERIAL 3 SNACKBAR TOAST                                             -->
+  <!-- ===================================================================== -->
+  <div id="snackbar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
+    <div class="px-5 py-3 rounded-2xl bg-[#313033] dark:bg-[#e6e1e5] text-[#f4eff4] dark:text-[#313033] text-sm font-medium shadow-lg flex items-center gap-2.5">
+      <span class="material-symbols-rounded text-[18px] text-emerald-400 dark:text-emerald-700">check_circle</span>
+      <span id="snackbarText">Copied to clipboard</span>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- EMBEDDED REGISTRY.JSON & APPLICATION LOGIC                            -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * EMBEDDED REGISTRY.JSON
+     * In production on GitHub Pages, you can keep this in a standalone `registry.json`
+     * file at the root of your repository and load it via `fetch('./registry.json')`.
+     */
+    const REGISTRY_DATA = {
+      schemaVersion: "1.0.0",
+      storeName: "OpenStore",
+      lastSynced: "2026-11-19T10:00:00Z",
+      extensions: [
+        {
+          id: "ublock-origin-lite",
+          name: "uBlock Origin Lite",
+          tagline: "Efficient, permission-less MV3 content blocker.",
+          description: "An experimental, declarative Manifest V3 content blocker built for speed and minimal memory footprint. Filters ads, trackers, and malware domains locally with zero remote code execution.",
+          author: "gorhill",
+          repoUrl: "https://github.com/gorhill/uBlock",
+          releaseUrl: "https://github.com/gorhill/uBlock/releases",
+          version: "2026.11.14",
+          license: "GPL-3.0",
+          manifestVersion: 3,
+          category: "Privacy & Security",
+          stars: 48920,
+          updatedAt: "2026-11-14",
+          verifiedBuild: true,
+          icon: "shield",
+          accentColor: "#b3261e",
+          permissions: ["declarativeNetRequest", "storage", "scripting"]
+        },
+        {
+          id: "refined-github",
+          name: "Refined GitHub",
+          tagline: "Simplifies the GitHub interface and adds useful features.",
+          description: "Adds over 200 quality-of-life improvements to GitHub: reaction avatars, clickable file paths, branch diff shortcuts, whitespace toggles, and cleaner PR review workflows.",
+          author: "refined-github",
+          repoUrl: "https://github.com/refined-github/refined-github",
+          releaseUrl: "https://github.com/refined-github/refined-github/releases",
+          version: "26.11.8",
+          license: "MIT",
+          manifestVersion: 3,
+          category: "Developer Tools",
+          stars: 26410,
+          updatedAt: "2026-11-16",
+          verifiedBuild: true,
+          icon: "terminal",
+          accentColor: "#0b57d0",
+          permissions: ["storage", "scripting", "contextMenus", "activeTab"]
+        },
+        {
+          id: "dark-reader",
+          name: "Dark Reader",
+          tagline: "Dark mode for every website. Take care of your eyes.",
+          description: "Analyzes web pages in real time and generates balanced dark themes on the fly. Customize brightness, contrast, sepia filters, and per-site rules with complete source transparency.",
+          author: "darkreader",
+          repoUrl: "https://github.com/darkreader/darkreader",
+          releaseUrl: "https://github.com/darkreader/darkreader/releases",
+          version: "4.9.98",
+          license: "MIT",
+          manifestVersion: 3,
+          category: "Appearance",
+          stars: 21350,
+          updatedAt: "2026-11-12",
+          verifiedBuild: true,
+          icon: "contrast",
+          accentColor: "#374151",
+          permissions: ["storage", "tabs", "scripting"]
+        },
+        {
+          id: "bitwarden-client",
+          name: "Bitwarden Password Manager",
+          tagline: "Secure, audited open-source password and passkey vault.",
+          description: "Zero-knowledge encrypted vault for passwords, TOTP authenticators, and passkeys. Independently security audited and compiled reproducibly from public GitHub sources.",
+          author: "bitwarden",
+          repoUrl: "https://github.com/bitwarden/clients",
+          releaseUrl: "https://github.com/bitwarden/clients/releases",
+          version: "2026.11.0",
+          license: "GPL-3.0",
+          manifestVersion: 3,
+          category: "Privacy & Security",
+          stars: 16840,
+          updatedAt: "2026-11-18",
+          verifiedBuild: true,
+          icon: "key",
+          accentColor: "#175ddc",
+          permissions: ["tabs", "storage", "clipboardWrite", "alarms", "webNavigation"]
+        },
+        {
+          id: "vimium-c",
+          name: "Vimium C",
+          tagline: "Keyboard-driven browser navigation and tab control.",
+          description: "Navigate links, switch tabs, search history, and scroll pages without touching your mouse. Features customizable Vim keybindings and an instant omni-bar launcher.",
+          author: "gdh1995",
+          repoUrl: "https://github.com/gdh1995/vimium-c",
+          releaseUrl: "https://github.com/gdh1995/vimium-c/releases",
+          version: "2.12.3",
+          license: "MIT",
+          manifestVersion: 3,
+          category: "Productivity",
+          stars: 6820,
+          updatedAt: "2026-11-10",
+          verifiedBuild: true,
+          icon: "keyboard",
+          accentColor: "#146c2e",
+          permissions: ["tabs", "bookmarks", "history", "storage", "sessions"]
+        },
+        {
+          id: "singlefile",
+          name: "SingleFile",
+          tagline: "Save a complete web page into a single self-contained HTML file.",
+          description: "Captures full web pages including CSS, images, fonts, and frames into one clean, offline-ready HTML file. Ideal for archiving documentation and research articles.",
+          author: "gildas-lormeau",
+          repoUrl: "https://github.com/gildas-lormeau/SingleFile",
+          releaseUrl: "https://github.com/gildas-lormeau/SingleFile/releases",
+          version: "1.22.74",
+          license: "AGPL-3.0",
+          manifestVersion: 3,
+          category: "Productivity",
+          stars: 15910,
+          updatedAt: "2026-11-15",
+          verifiedBuild: true,
+          icon: "archive",
+          accentColor: "#65558f",
+          permissions: ["activeTab", "downloads", "storage", "contextMenus"]
+        },
+        {
+          id: "json-formatter-pro",
+          name: "JSON Formatter Open",
+          tagline: "Fast, zero-tracking syntax highlighter and tree viewer for JSON.",
+          description: "Automatically detects raw JSON responses in the browser and renders collapsible trees, clickable URLs, raw/parsed toggles, and dark mode support without external network calls.",
+          author: "callumlocke",
+          repoUrl: "https://github.com/callumlocke/json-formatter",
+          releaseUrl: "https://github.com/callumlocke/json-formatter/releases",
+          version: "0.8.2",
+          license: "MIT",
+          manifestVersion: 3,
+          category: "Developer Tools",
+          stars: 4190,
+          updatedAt: "2026-10-29",
+          verifiedBuild: false,
+          icon: "data_object",
+          accentColor: "#006a6a",
+          permissions: ["storage"]
+        },
+        {
+          id: "sponsorblock",
+          name: "SponsorBlock",
+          tagline: "Crowdsourced skipping of sponsors, intros, and reminders.",
+          description: "Automatically skips sponsor segments, subscription reminders, and non-music sections on videos using a privacy-preserving, community-submitted timestamp database.",
+          author: "ajayyy",
+          repoUrl: "https://github.com/ajayyy/SponsorBlock",
+          releaseUrl: "https://github.com/ajayyy/SponsorBlock/releases",
+          version: "5.11.2",
+          license: "LGPL-3.0",
+          manifestVersion: 3,
+          category: "Entertainment",
+          stars: 11430,
+          updatedAt: "2026-11-17",
+          verifiedBuild: true,
+          icon: "fast_forward",
+          accentColor: "#c00021",
+          permissions: ["storage", "scripting"]
+        },
+        {
+          id: "return-youtube-dislike",
+          name: "Return YouTube Dislike",
+          tagline: "Restores dislike counts on video pages using community & archived data.",
+          description: "Brings back the dislike counter display on YouTube using a combination of archived statistics and real-time extension user votes, with complete source transparency.",
+          author: "Anarios",
+          repoUrl: "https://github.com/Anarios/return-youtube-dislike",
+          releaseUrl: "https://github.com/Anarios/return-youtube-dislike/releases",
+          version: "3.0.0.18",
+          license: "GPL-3.0",
+          manifestVersion: 3,
+          category: "Entertainment",
+          stars: 12780,
+          updatedAt: "2026-11-11",
+          verifiedBuild: true,
+          icon: "thumb_down",
+          accentColor: "#9c27b0",
+          permissions: ["storage", "activeTab"]
+        },
+        {
+          id: "keepassxc-browser",
+          name: "KeePassXC-Browser",
+          tagline: "Native local desktop database bridge for KeePassXC.",
+          description: "Connects your browser securely via Native Messaging to a local KeePassXC database file—keeping credentials offline and completely under your own file-system control.",
+          author: "keepassxreboot",
+          repoUrl: "https://github.com/keepassxreboot/keepassxc-browser",
+          releaseUrl: "https://github.com/keepassxreboot/keepassxc-browser/releases",
+          version: "1.9.5",
+          license: "GPL-3.0",
+          manifestVersion: 3,
+          category: "Other",
+          stars: 3420,
+          updatedAt: "2026-11-08",
+          verifiedBuild: true,
+          icon: "extension",
+          accentColor: "#2e7d32",
+          permissions: ["nativeMessaging", "tabs", "storage", "contextMenus"]
+        }
+      ]
+    };
+
+    // =========================================================================
+    // STATE MANAGEMENT
+    // =========================================================================
+    const state = {
+      searchQuery: "",
+      selectedCategory: "All",
+      sortBy: "stars",
+      extensions: REGISTRY_DATA.extensions
+    };
+
+    const CATEGORIES = [
+      { id: "All", label: "All Extensions", icon: "apps" },
+      { id: "Privacy & Security", label: "Privacy & Security", icon: "verified_user" },
+      { id: "Developer Tools", label: "Developer Tools", icon: "code" },
+      { id: "Productivity", label: "Productivity", icon: "bolt" },
+      { id: "Appearance", label: "Appearance", icon: "palette" },
+      { id: "Entertainment", label: "Entertainment", icon: "play_circle" },
+      { id: "Other", label: "Other", icon: "category" }
+    ];
+
+    // =========================================================================
+    // DOM ELEMENTS
+    // =========================================================================
+    const searchInput = document.getElementById("searchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const categoryChipsContainer = document.getElementById("categoryChips");
+    const sortSelect = document.getElementById("sortSelect");
+    const extensionsGrid = document.getElementById("extensionsGrid");
+    const resultsCount = document.getElementById("resultsCount");
+    const emptyState = document.getElementById("emptyState");
+    const heroBanner = document.getElementById("heroBanner");
+
+    // Detail Modal Elements
+    const detailModal = document.getElementById("detailModal");
+    const closeDetailModalBtn = document.getElementById("closeDetailModalBtn");
+
+    // Registry Modal Elements
+    const registryModal = document.getElementById("registryModal");
+    const closeRegistryModalBtn = document.getElementById("closeRegistryModalBtn");
+
+    // =========================================================================
+    // HELPER FUNCTIONS
+    // =========================================================================
+    function formatStars(num) {
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+      }
+      return num.toString();
+    }
+
+    function showSnackbar(message) {
+      const snackbar = document.getElementById("snackbar");
+      const snackbarText = document.getElementById("snackbarText");
+      snackbarText.textContent = message;
+      snackbar.classList.remove("opacity-0", "translate-y-2");
+      snackbar.classList.add("opacity-100", "translate-y-0");
+
+      clearTimeout(window._snackbarTimeout);
+      window._snackbarTimeout = setTimeout(() => {
+        snackbar.classList.add("opacity-0", "translate-y-2");
+        snackbar.classList.remove("opacity-100", "translate-y-0");
+      }, 2600);
+    }
+
+    function copyTextToClipboard(text, successMsg = "Copied to clipboard") {
+      const tempInput = document.createElement("textarea");
+      tempInput.value = text;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      try {
+        document.execCommand("copy");
+        showSnackbar(successMsg);
+      } catch (err) {
+        console.error("Copy failed", err);
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    // =========================================================================
+    // RENDERING: CATEGORY CHIPS (Material 3 Filter Chips)
+    // =========================================================================
+    function renderCategoryChips() {
+      categoryChipsContainer.innerHTML = CATEGORIES.map(cat => {
+        const isSelected = state.selectedCategory === cat.id;
+        const baseClasses = "h-9 px-4 rounded-xl text-xs sm:text-sm font-medium inline-flex items-center gap-2 shrink-0 transition-all cursor-pointer border";
+        const activeClasses = isSelected
+          ? "bg-m3-secondaryContainer dark:bg-m3-darkSecondaryContainer text-m3-onSecondaryContainer dark:text-m3-darkOnSecondaryContainer border-transparent shadow-2xs"
+          : "bg-transparent text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant border-m3-outlineVariant dark:border-m3-darkOutlineVariant hover:bg-m3-surfaceContainerLow dark:hover:bg-m3-darkSurfaceContainerLow";
+
+        return `
+          <button data-category="${cat.id}" class="${baseClasses} ${activeClasses}">
+            <span class="material-symbols-rounded text-[18px] ${isSelected ? 'icon-filled' : ''}">${isSelected ? 'check' : cat.icon}</span>
+            <span>${cat.label}</span>
+          </button>
+        `;
+      }).join("");
+
+      categoryChipsContainer.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedCategory = btn.dataset.category;
+          renderCategoryChips();
+          renderExtensions();
+        });
+      });
+    }
+
+    // =========================================================================
+    // RENDERING: EXTENSION CARDS (Material 3 Elevated/Filled Cards)
+    // =========================================================================
+    function renderExtensions() {
+      const query = state.searchQuery.trim().toLowerCase();
+
+      // Hide hero banner when actively searching so results stay front-and-center
+      if (query.length > 0) {
+        heroBanner.classList.add("hidden");
+      } else {
+        heroBanner.classList.remove("hidden");
+      }
+
+      // Filter
+      let filtered = state.extensions.filter(ext => {
+        const matchesCat = state.selectedCategory === "All" || ext.category === state.selectedCategory;
+        const matchesQuery =
+          !query ||
+          ext.name.toLowerCase().includes(query) ||
+          ext.tagline.toLowerCase().includes(query) ||
+          ext.author.toLowerCase().includes(query) ||
+          ext.license.toLowerCase().includes(query) ||
+          ext.category.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      // Sort
+      filtered.sort((a, b) => {
+        if (state.sortBy === "stars") return b.stars - a.stars;
+        if (state.sortBy === "updated") return new Date(b.updatedAt) - new Date(a.updatedAt);
+        if (state.sortBy === "name") return a.name.localeCompare(b.name);
+        return 0;
+      });
+
+      // Update count
+      resultsCount.textContent = `Showing ${filtered.length} extension${filtered.length === 1 ? "" : "s"}`;
+
+      // Empty state toggle
+      if (filtered.length === 0) {
+        extensionsGrid.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      } else {
+        emptyState.classList.add("hidden");
+      }
+
+      // Build cards
+      extensionsGrid.innerHTML = filtered.map(ext => `
+        <article
+          data-id="${ext.id}"
+          class="group cursor-pointer rounded-[24px] bg-m3-surfaceContainerLow dark:bg-m3-darkSurfaceContainerLow hover:bg-m3-surfaceContainer dark:hover:bg-m3-darkSurfaceContainer border border-m3-outlineVariant/30 dark:border-m3-darkOutlineVariant/30 p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+        >
+          <div>
+            <!-- Card Header: App Icon + Title + Author -->
+            <div class="flex items-start gap-3.5">
+              <div
+                class="w-14 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform"
+                style="background-color: ${ext.accentColor}"
+              >
+                <span class="material-symbols-rounded text-[28px]">${ext.icon}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <h3 class="font-display font-semibold text-base text-m3-onSurface dark:text-m3-darkOnSurface truncate group-hover:text-m3-primary dark:group-hover:text-m3-darkPrimary transition-colors">
+                  ${ext.name}
+                </h3>
+                <p class="text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant truncate mt-0.5">
+                  @${ext.author}
+                </p>
+                <!-- Rating / Stars & License -->
+                <div class="flex items-center gap-2 mt-1.5 text-xs text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant">
+                  <span class="inline-flex items-center gap-0.5 font-medium text-m3-onSurface dark:text-m3-darkOnSurface">
+                    <span class="material-symbols-rounded text-[15px] icon-filled text-amber-500">star</span>
+                    ${formatStars(ext.stars)}
+                  </span>
+                  <span>•</span>
+                  <span class="px-1.5 py-0.5 rounded-md bg-m3-surfaceContainerHigh dark:bg-m3-darkSurfaceContainerHigh font-mono text-[11px]">
+                    ${ext.license}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Short Description -->
+            <p class="mt-4 text-xs sm:text-sm text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant line-clamp-2 leading-relaxed">
+              ${ext.tagline}
+            </p>
+          </div>
+
+          <!-- Card Footer: Category Tag & Action Pill -->
+          <div class="mt-5 pt-3.5 border-t border-m3-outlineVariant/25 dark:border-m3-darkOutlineVariant/25 flex items-center justify-between gap-2">
+            <span class="text-[11px] font-medium text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant truncate">
+              ${ext.category}
+            </span>
+            <span class="h-8 px-3.5 rounded-full bg-m3-primaryContainer/70 dark:bg-m3-darkPrimaryContainer/70 group-hover:bg-m3-primary dark:group-hover:bg-m3-darkPrimary text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer group-hover:text-m3-onPrimary dark:group-hover:text-m3-darkOnPrimary text-xs font-medium inline-flex items-center gap-1 transition-colors shrink-0">
+              Get
+            </span>
+          </div>
+        </article>
+      `).join("");
+
+      // Attach click handlers to cards
+      extensionsGrid.querySelectorAll("article").forEach(card => {
+        card.addEventListener("click", () => {
+          const ext = state.extensions.find(e => e.id === card.dataset.id);
+          if (ext) openDetailModal(ext);
+        });
+      });
+    }
+
+    // =========================================================================
+    // MODAL 1: EXTENSION DETAIL VIEW
+    // =========================================================================
+    function openDetailModal(ext) {
+      const modalIcon = document.getElementById("modalIcon");
+      modalIcon.style.backgroundColor = ext.accentColor;
+      modalIcon.innerHTML = `<span class="material-symbols-rounded text-[34px]">${ext.icon}</span>`;
+
+      document.getElementById("modalTitle").textContent = ext.name;
+      document.getElementById("modalAuthor").textContent = `@${ext.author}`;
+      document.getElementById("modalVersion").textContent = `v${ext.version}`;
+      document.getElementById("modalLongDesc").textContent = ext.description;
+      document.getElementById("modalStars").innerHTML = `
+        <span class="material-symbols-rounded text-[18px] icon-filled text-amber-500">star</span>
+        <span>${ext.stars.toLocaleString()}</span>
+      `;
+      document.getElementById("modalLicense").textContent = ext.license;
+      document.getElementById("modalManifest").textContent = `MV${ext.manifestVersion}`;
+      document.getElementById("modalUpdated").textContent = ext.updatedAt;
+
+      const verifiedBadge = document.getElementById("modalVerifiedBadge");
+      if (ext.verifiedBuild) {
+        verifiedBadge.classList.remove("hidden");
+      } else {
+        verifiedBadge.classList.add("hidden");
+      }
+
+      document.getElementById("modalDownloadLink").href = ext.releaseUrl;
+      document.getElementById("modalRepoLink").href = ext.repoUrl;
+
+      // Render permissions chips
+      const permContainer = document.getElementById("modalPermissions");
+      permContainer.innerHTML = ext.permissions.map(p => `
+        <span class="px-2.5 py-1 rounded-lg bg-m3-surface dark:bg-m3-darkSurface border border-m3-outlineVariant/40 dark:border-m3-darkOutlineVariant/40 font-mono text-xs text-m3-onSurface dark:text-m3-darkOnSurface">
+          ${p}
+        </span>
+      `).join("");
+
+      detailModal.classList.remove("hidden");
+      detailModal.classList.add("flex");
+    }
+
+    function closeDetailModal() {
+      detailModal.classList.add("hidden");
+      detailModal.classList.remove("flex");
+    }
+
+    // =========================================================================
+    // MODAL 2: REGISTRY.JSON, PR GENERATOR & INSTALL GUIDE
+    // =========================================================================
+    function openRegistryModal(defaultTab = "json") {
+      document.getElementById("rawRegistryPre").textContent = JSON.stringify(REGISTRY_DATA, null, 2);
+      updateGeneratedSnippet();
+      switchRegistryTab(defaultTab);
+      registryModal.classList.remove("hidden");
+      registryModal.classList.add("flex");
+    }
+
+    function closeRegistryModal() {
+      registryModal.classList.add("hidden");
+      registryModal.classList.remove("flex");
+    }
+
+    function switchRegistryTab(tab) {
+      const tabs = {
+        json: { btn: document.getElementById("tabViewJson"), panel: document.getElementById("panelViewJson") },
+        submit: { btn: document.getElementById("tabSubmitEntry"), panel: document.getElementById("panelSubmitEntry") },
+        guide: { btn: document.getElementById("tabInstallGuide"), panel: document.getElementById("panelInstallGuide") }
+      };
+
+      Object.entries(tabs).forEach(([key, { btn, panel }]) => {
+        if (key === tab) {
+          btn.classList.add("border-m3-primary", "dark:border-m3-darkPrimary", "text-m3-primary", "dark:text-m3-darkPrimary", "font-semibold");
+          btn.classList.remove("border-transparent", "text-m3-onSurfaceVariant", "dark:text-m3-darkOnSurfaceVariant");
+          panel.classList.remove("hidden");
+        } else {
+          btn.classList.remove("border-m3-primary", "dark:border-m3-darkPrimary", "text-m3-primary", "dark:text-m3-darkPrimary", "font-semibold");
+          btn.classList.add("border-transparent", "text-m3-onSurfaceVariant", "dark:text-m3-darkOnSurfaceVariant");
+          panel.classList.add("hidden");
+        }
+      });
+    }
+
+    function updateGeneratedSnippet() {
+      const name = document.getElementById("genName").value.trim() || "My Awesome Extension";
+      const author = document.getElementById("genAuthor").value.trim() || "github-username";
+      const repoUrl = document.getElementById("genRepo").value.trim() || `https://github.com/${author}/my-extension`;
+      const category = document.getElementById("genCategory").value;
+      const tagline = document.getElementById("genDesc").value.trim() || "A lightweight open-source browser utility.";
+
+      const snippet = {
+        id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        name,
+        tagline,
+        author,
+        repoUrl,
+        releaseUrl: `${repoUrl.replace(/\/$/, "")}/releases`,
+        version: "1.0.0",
+        license: "MIT",
+        manifestVersion: 3,
+        category,
+        verifiedBuild: true,
+        icon: "extension",
+        accentColor: "#0b57d0",
+        permissions: ["storage", "activeTab"]
+      };
+
+      document.getElementById("generatedSnippetPre").textContent = JSON.stringify(snippet, null, 2);
+    }
+
+    // =========================================================================
+    // EVENT LISTENERS & INITIALIZATION
+    // =========================================================================
+    searchInput.addEventListener("input", (e) => {
+      state.searchQuery = e.target.value;
+      clearSearchBtn.classList.toggle("hidden", state.searchQuery.length === 0);
+      renderExtensions();
+    });
+
+    clearSearchBtn.addEventListener("click", () => {
+      state.searchQuery = "";
+      searchInput.value = "";
+      clearSearchBtn.classList.add("hidden");
+      renderExtensions();
+    });
+
+    sortSelect.addEventListener("change", (e) => {
+      state.sortBy = e.target.value;
+      renderExtensions();
+    });
+
+    document.getElementById("resetFiltersBtn").addEventListener("click", () => {
+      state.searchQuery = "";
+      state.selectedCategory = "All";
+      searchInput.value = "";
+      clearSearchBtn.classList.add("hidden");
+      renderCategoryChips();
+      renderExtensions();
+    });
+
+    document.getElementById("brandReset").addEventListener("click", (e) => {
+      e.preventDefault();
+      state.searchQuery = "";
+      state.selectedCategory = "All";
+      searchInput.value = "";
+      clearSearchBtn.classList.add("hidden");
+      renderCategoryChips();
+      renderExtensions();
+    });
+
+    // Dark Mode Toggle
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const themeIcon = document.getElementById("themeIcon");
+    themeToggleBtn.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+    });
+
+    // Detail Modal Events
+    closeDetailModalBtn.addEventListener("click", closeDetailModal);
+    detailModal.addEventListener("click", (e) => {
+      if (e.target === detailModal) closeDetailModal();
+    });
+    document.getElementById("copyExtUrlBtn").addEventListener("click", () => {
+      copyTextToClipboard("chrome://extensions", "Copied chrome://extensions to clipboard");
+    });
+
+    // Registry Modal Triggers
+    document.getElementById("openRegistryBtn").addEventListener("click", () => openRegistryModal("json"));
+    document.getElementById("viewRegistryHeroBtn").addEventListener("click", () => openRegistryModal("json"));
+    document.getElementById("footerRegistryBtn").addEventListener("click", () => openRegistryModal("json"));
+
+    document.getElementById("openSubmitBtn").addEventListener("click", () => openRegistryModal("submit"));
+    document.getElementById("footerSubmitBtn").addEventListener("click", () => openRegistryModal("submit"));
+
+    document.getElementById("howToInstallHeroBtn").addEventListener("click", () => openRegistryModal("guide"));
+    document.getElementById("footerInstallBtn").addEventListener("click", () => openRegistryModal("guide"));
+
+    closeRegistryModalBtn.addEventListener("click", closeRegistryModal);
+    registryModal.addEventListener("click", (e) => {
+      if (e.target === registryModal) closeRegistryModal();
+    });
+
+    // Registry Modal Tabs & Inputs
+    document.getElementById("tabViewJson").addEventListener("click", () => switchRegistryTab("json"));
+    document.getElementById("tabSubmitEntry").addEventListener("click", () => switchRegistryTab("submit"));
+    document.getElementById("tabInstallGuide").addEventListener("click", () => switchRegistryTab("guide"));
+
+    ["genName", "genAuthor", "genRepo", "genCategory", "genDesc"].forEach(id => {
+      document.getElementById(id).addEventListener("input", updateGeneratedSnippet);
+    });
+
+    document.getElementById("copyFullJsonBtn").addEventListener("click", () => {
+      copyTextToClipboard(JSON.stringify(REGISTRY_DATA, null, 2), "Copied registry.json to clipboard");
+    });
+
+    document.getElementById("copyGeneratedSnippetBtn").addEventListener("click", () => {
+      const snippetText = document.getElementById("generatedSnippetPre").textContent;
+      copyTextToClipboard(snippetText, "Copied PR entry snippet to clipboard");
+    });
+
+    // Escape key closes modals
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeDetailModal();
+        closeRegistryModal();
+      }
+    });
+
+    // Initial Render
+    renderCategoryChips();
+    renderExtensions();
+  </script>
+</body>
+</html>
