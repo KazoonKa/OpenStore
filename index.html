@@ -841,6 +841,15 @@
     // =========================================================================
     // RENDERING: EXTENSION CARDS (Material 3 Elevated/Filled Cards)
     // =========================================================================
+    function normalizeCategory(rawCategory) {
+      if (!rawCategory) return "Other";
+      const cleaned = String(rawCategory).trim().toLowerCase();
+      const matched = CATEGORIES.find(
+        c => c.id !== "All" && (c.id.toLowerCase() === cleaned || c.label.toLowerCase() === cleaned)
+      );
+      return matched ? matched.id : "Other";
+    }
+
     function renderExtensions() {
       const query = state.searchQuery.trim().toLowerCase();
 
@@ -853,14 +862,15 @@
 
       // Filter
       let filtered = state.extensions.filter(ext => {
-        const matchesCat = state.selectedCategory === "All" || ext.category === state.selectedCategory;
+        const extCategory = normalizeCategory(ext.category);
+        const matchesCat = state.selectedCategory === "All" || extCategory === state.selectedCategory;
         const matchesQuery =
           !query ||
-          ext.name.toLowerCase().includes(query) ||
-          ext.tagline.toLowerCase().includes(query) ||
-          ext.author.toLowerCase().includes(query) ||
-          ext.license.toLowerCase().includes(query) ||
-          ext.category.toLowerCase().includes(query);
+          (ext.name || "").toLowerCase().includes(query) ||
+          (ext.tagline || "").toLowerCase().includes(query) ||
+          (ext.author || "").toLowerCase().includes(query) ||
+          (ext.license || "").toLowerCase().includes(query) ||
+          extCategory.toLowerCase().includes(query);
         return matchesCat && matchesQuery;
       });
 
@@ -929,7 +939,7 @@
           <!-- Card Footer: Category Tag & Action Pill -->
           <div class="mt-5 pt-3.5 border-t border-m3-outlineVariant/25 dark:border-m3-darkOutlineVariant/25 flex items-center justify-between gap-2">
             <span class="text-[11px] font-medium text-m3-onSurfaceVariant dark:text-m3-darkOnSurfaceVariant truncate">
-              ${ext.category}
+              ${normalizeCategory(ext.category)}
             </span>
             <span class="h-8 px-3.5 rounded-full bg-m3-primaryContainer/70 dark:bg-m3-darkPrimaryContainer/70 group-hover:bg-m3-primary dark:group-hover:bg-m3-darkPrimary text-m3-onPrimaryContainer dark:text-m3-darkOnPrimaryContainer group-hover:text-m3-onPrimary dark:group-hover:text-m3-darkOnPrimary text-xs font-medium inline-flex items-center gap-1 transition-colors shrink-0">
               Get
