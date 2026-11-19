@@ -248,7 +248,7 @@
       "manifestVersion": 3,
       "category": "Entertainment",
       "verifiedBuild": true,
-      "icon": "grid-2x2",
+      "icon": "gamepad",
       "accentColor": "#0050ff",
       "permissions": [
         "storage",
