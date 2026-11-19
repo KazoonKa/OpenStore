@@ -235,6 +235,25 @@
         "storage",
         "contextMenus"
       ]
+    },
+    {
+      "id": "openstacker",
+      "name": "OpenStacker",
+      "tagline": "A lightweight open-source browser utility.",
+      "author": "KazoonKa",
+      "repoUrl": "https://github.com/KazoonKa/OpenStacker",
+      "releaseUrl": "https://github.com/KazoonKa/OpenStacker/releases",
+      "version": "1.0.0",
+      "license": "MIT",
+      "manifestVersion": 3,
+      "category": "Entertainment",
+      "verifiedBuild": true,
+      "icon": "extension",
+      "accentColor": "#0b57d0",
+      "permissions": [
+        "storage",
+        "activeTab"
+      ]
     }
   ]
 }
