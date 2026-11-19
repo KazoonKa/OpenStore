@@ -527,11 +527,11 @@
   <!-- ===================================================================== -->
   <script>
     /**
-     * EMBEDDED REGISTRY.JSON
-     * In production on GitHub Pages, you can keep this in a standalone `registry.json`
-     * file at the root of your repository and load it via `fetch('./registry.json')`.
+     * FALLBACK REGISTRY DATA
+     * Used automatically if ./registry.json cannot be fetched (e.g. local file:// preview).
+     * When hosted on GitHub Pages or a local server, ./registry.json will override this.
      */
-    const REGISTRY_DATA = {
+    const FALLBACK_REGISTRY_DATA = {
       schemaVersion: "1.0.0",
       storeName: "OpenStore",
       lastSynced: "2026-11-19T10:00:00Z",
@@ -729,6 +729,9 @@
       ]
     };
 
+    // Active registry object (will be replaced by external ./registry.json if available)
+    let activeRegistryData = FALLBACK_REGISTRY_DATA;
+
     // =========================================================================
     // STATE MANAGEMENT
     // =========================================================================
@@ -736,7 +739,7 @@
       searchQuery: "",
       selectedCategory: "All",
       sortBy: "stars",
-      extensions: REGISTRY_DATA.extensions
+      extensions: activeRegistryData.extensions
     };
 
     const CATEGORIES = [
@@ -995,7 +998,7 @@
     // MODAL 2: REGISTRY.JSON, PR GENERATOR & INSTALL GUIDE
     // =========================================================================
     function openRegistryModal(defaultTab = "json") {
-      document.getElementById("rawRegistryPre").textContent = JSON.stringify(REGISTRY_DATA, null, 2);
+      document.getElementById("rawRegistryPre").textContent = JSON.stringify(activeRegistryData, null, 2);
       updateGeneratedSnippet();
       switchRegistryTab(defaultTab);
       registryModal.classList.remove("hidden");
@@ -1137,7 +1140,7 @@
     });
 
     document.getElementById("copyFullJsonBtn").addEventListener("click", () => {
-      copyTextToClipboard(JSON.stringify(REGISTRY_DATA, null, 2), "Copied registry.json to clipboard");
+      copyTextToClipboard(JSON.stringify(activeRegistryData, null, 2), "Copied registry.json to clipboard");
     });
 
     document.getElementById("copyGeneratedSnippetBtn").addEventListener("click", () => {
@@ -1153,9 +1156,29 @@
       }
     });
 
-    // Initial Render
-    renderCategoryChips();
-    renderExtensions();
+    // =========================================================================
+    // LOAD EXTERNAL REGISTRY.JSON & INITIALIZE
+    // =========================================================================
+    async function initStore() {
+      try {
+        // Cache-busting query (?t=...) ensures GitHub Pages updates appear immediately
+        const response = await fetch(`./registry.json?t=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const externalData = await response.json();
+        if (externalData && Array.isArray(externalData.extensions)) {
+          activeRegistryData = externalData;
+          state.extensions = externalData.extensions;
+        }
+      } catch (err) {
+        console.warn("Could not load external ./registry.json, using embedded fallback:", err.message);
+      }
+
+      renderCategoryChips();
+      renderExtensions();
+    }
+
+    initStore();
   </script>
 </body>
 </html>
